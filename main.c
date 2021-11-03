@@ -10,27 +10,29 @@
 int main() {
 	char dirname[50] = ".";
 	struct stat a;
-	if (!stat(dirname, &a)) printf("Directory opened successfully\n");
-	else {
+	struct dirent *entry;
+	long long filesizes;
+	DIR *b = opendir(dirname);
+	if (!b) {
 		printf("Directory not opened successfully\n");
 		return 0;
 	}
-	printf("Information for Directory: %s\n", dirname);
-	printf("Total Directory Size: %lld Bytes\n", a.st_size);
-	DIR *b = opendir(dirname);
-	struct dirent *entry;
-	char dirs[5000] = "Directories:\n", files[5000] = "Regular files:\n";
+	char dirs[5000] = "Directories:\n", files[5000] = "Regular files:\n", add[5000];
 	while ((entry = readdir(b))) {
 		if (entry->d_type == 8) {
-			strcat(files, "\t");
-			strcat(files, entry->d_name);
-			strcat(files, "\n");
+			stat(entry->d_name, &a);
+			sprintf(add, "\t%s    %lld Bytes\n", entry->d_name, a.st_size);
+			strcat(files, add);
+			filesizes += a.st_size;
 		} else if (entry->d_type==4) {
-			strcat(dirs, "\t");
-			strcat(dirs, entry->d_name);
-			strcat(dirs, "\n");
+			sprintf(add, "\t%s\n", entry->d_name);
+			strcat(dirs, add);
 		}
 	}
+	closedir(b);
+
+	printf("Information for Directory: %s\n", dirname);
+	printf("Total Directory Size: %lld Bytes\n", filesizes);
 	printf("%s", dirs);
 	printf("%s", files);
 	return 0;
